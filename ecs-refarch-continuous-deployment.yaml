@@ -24,6 +24,12 @@ Parameters:
     Description: >
       Token for the user specified above. (https://github.com/settings/tokens)
 
+  BuildComputeType:
+    Type: String
+    Default: "BUILD_GENERAL1_SMALL"
+    Description: >
+      Size of machine to use for build.  *_MEDIUM and *_LARGE are available if SMALL is not sufficient.
+
   EcsClusterInstanceType:
     Type: String
     Default: "t2.small"
@@ -60,6 +66,8 @@ Metadata:
         default: "Branch"
       GitHubToken:
         default: "Personal Access Token"
+      BuildComputeType:
+        default: "Build Machine Size"
       EcsClusterInstanceType:
         default: "Cluster Instance Type"
       EcsClusterMinSize:
@@ -76,6 +84,10 @@ Metadata:
           - GitHubBranch
           - GitHubUser
           - GitHubToken
+      - Label:
+          default: Build/Deployment Pipeline Configuration
+        Parameters:
+          - BuildComputeType
       - Label:
           default: ECS Configuration
         Parameters:
@@ -111,6 +123,7 @@ Resources:
         GitHubBranch: !Ref GitHubBranch
         TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
         TemplateBucket: ecs-refarch-continuous-deployment
+        BuildComputeType: !Ref BuildComputeType
 
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
