@@ -7,16 +7,17 @@ Description: >
 Parameters:
   GitHubUser:
     Type: String
+    Default: mathomas
     Description: Your username on GitHub.
 
   GitHubRepo:
     Type: String
-    Default: ecs-demo-php-simple-app
+    Default: twig
     Description: The repo name of the sample service.
 
   GitHubBranch:
     Type: String
-    Default: master
+    Default: aws_metal_rig
     Description: The branch of the repo to continuously deploy.
 
   GitHubToken:
@@ -54,6 +55,11 @@ Parameters:
     Description: >
       Initial number of instances in ECS cluster.
 
+  TemplateBucket:
+    Type: String
+    Default: "buildit-twig-metal-rig"
+    Description: >
+      Bucket in S3 where this and the supporting templates for your project were deployed (using ./bin/deploy).
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -101,42 +107,42 @@ Resources:
   Cluster:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/buildit-aws-code-pipeline-ecs/ecs-cluster.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/ecs-cluster.yaml
       Parameters:
-        SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
-        Subnets: !GetAtt VPC.Outputs.Subnets
-        VpcId: !GetAtt VPC.Outputs.VpcId
+        SourceSecurityGroup: !GetAtt Elb.Outputs.SecurityGroup
+        Subnets: !GetAtt Vpc.Outputs.Subnets
+        VpcId: !GetAtt Vpc.Outputs.VpcId
         InstanceType: !Ref EcsClusterInstanceType
         MinClusterSize: !Ref EcsClusterMinSize
         MaxClusterSize: !Ref EcsClusterMaxSize
         DesiredClusterSize: !Ref EcsClusterDesiredSize
 
-  DeploymentPipeline:
+  Pipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/buildit-aws-code-pipeline-ecs/deployment-pipeline.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/deployment-pipeline.yaml
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         GitHubUser: !Ref GitHubUser
         GitHubToken: !Ref GitHubToken
         GitHubRepo: !Ref GitHubRepo
         GitHubBranch: !Ref GitHubBranch
-        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
-        TemplateBucket: ecs-refarch-continuous-deployment
+        TargetGroup: !GetAtt Elb.Outputs.TargetGroup
+        TemplateBucket: !Sub ${TemplateBucket}
         BuildComputeType: !Ref BuildComputeType
 
-  LoadBalancer:
+  Elb:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/load-balancer.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/load-balancer.yaml
       Parameters:
-        Subnets: !GetAtt VPC.Outputs.Subnets
-        VpcId: !GetAtt VPC.Outputs.VpcId
+        Subnets: !GetAtt Vpc.Outputs.Subnets
+        VpcId: !GetAtt Vpc.Outputs.VpcId
 
-  VPC:
+  Vpc:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/vpc.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/vpc.yaml
       Parameters:
         Name: !Ref AWS::StackName
         VpcCIDR: 10.215.0.0/16
@@ -147,8 +153,8 @@ Resources:
 Outputs:
   ServiceUrl:
     Description: The sample service that is being continuously deployed.
-    Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
+    Value: !GetAtt Elb.Outputs.ServiceUrl
 
   PipelineUrl:
     Description: The continuous deployment pipeline in the AWS Management Console.
-    Value: !GetAtt DeploymentPipeline.Outputs.PipelineUrl
+    Value: !GetAtt Pipeline.Outputs.PipelineUrl

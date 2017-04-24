@@ -2,10 +2,10 @@
 
 set -o errexit -o xtrace
 
-bucket=ecs-refarch-continuous-deployment
+project=${1}
 
-zip deploy/templates.zip ecs-refarch-continuous-deployment.yaml templates/*
+zip deploy/templates.zip ${project}.yaml templates/*
 
-aws s3 cp deploy/templates.zip "s3://${bucket}" --acl public-read
-aws s3 cp ecs-refarch-continuous-deployment.yaml "s3://${bucket}" --acl public-read
-aws s3 cp --recursive templates/ "s3://${bucket}/templates" --acl public-read
+aws s3 cp deploy/templates.zip "s3://${project}" --acl public-read
+aws s3 cp ecs-refarch-continuous-deployment.yaml "s3://${project}" --acl public-read
+aws s3 cp --recursive templates/ "s3://${project}/templates" --acl public-read
