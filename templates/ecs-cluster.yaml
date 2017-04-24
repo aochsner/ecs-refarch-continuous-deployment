@@ -3,7 +3,15 @@ Parameters:
     Type: String
     Default: t2.large
 
-  ClusterSize:
+  MinClusterSize:
+    Type: Number
+    Default: 1
+
+  MaxClusterSize:
+    Type: Number
+    Default: 1
+
+  DesiredClusterSize:
     Type: Number
     Default: 1
 
@@ -86,9 +94,9 @@ Resources:
     Properties:
       VPCZoneIdentifier: !Ref Subnets
       LaunchConfigurationName: !Ref LaunchConfiguration
-      MinSize: !Ref ClusterSize
-      MaxSize: !Ref ClusterSize
-      DesiredCapacity: !Ref ClusterSize
+      MinSize: !Ref MinClusterSize
+      MaxSize: !Ref MaxClusterSize
+      DesiredCapacity: !Ref DesiredClusterSize
       Tags: 
         - Key: Name
           Value: !Sub ${AWS::StackName} - ECS Host
