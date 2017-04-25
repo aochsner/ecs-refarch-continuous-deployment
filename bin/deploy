@@ -4,7 +4,7 @@ set -o errexit -o xtrace
 
 project=${1}
 
-zip deploy/templates.zip ${project}.yaml templates/*
+zip deploy/templates.zip ecs-refarch-continuous-deployment.yaml templates/*
 
 aws s3 cp deploy/templates.zip "s3://${project}" --acl public-read
 aws s3 cp ecs-refarch-continuous-deployment.yaml "s3://${project}" --acl public-read
