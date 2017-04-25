@@ -110,7 +110,7 @@ Resources:
       TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/ecs-cluster.yaml
       Parameters:
         SourceSecurityGroup: !GetAtt Elb.Outputs.SecurityGroup
-        Subnets: !GetAtt Vpc.Outputs.Subnets
+        Subnets: !GetAtt Vpc.Outputs.PrivateSubnets
         VpcId: !GetAtt Vpc.Outputs.VpcId
         InstanceType: !Ref EcsClusterInstanceType
         MinClusterSize: !Ref EcsClusterMinSize
@@ -136,7 +136,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/load-balancer.yaml
       Parameters:
-        Subnets: !GetAtt Vpc.Outputs.Subnets
+        Subnets: !GetAtt Vpc.Outputs.PublicSubnets
         VpcId: !GetAtt Vpc.Outputs.VpcId
 
   Vpc:
@@ -146,9 +146,12 @@ Resources:
       Parameters:
         Name: !Ref AWS::StackName
         VpcCIDR: 10.215.0.0/16
-        Subnet1CIDR: 10.215.10.0/24
-        Subnet2CIDR: 10.215.20.0/24
-        Subnet3CIDR: 10.215.30.0/24
+        PubSubnet1CIDR: 10.215.10.0/24
+        PubSubnet2CIDR: 10.215.20.0/24
+        PubSubnet3CIDR: 10.215.30.0/24
+        PrivSubnet1CIDR: 10.215.40.0/24
+        PrivSubnet2CIDR: 10.215.50.0/24
+        PrivSubnet3CIDR: 10.215.60.0/24
 
 
 Outputs:

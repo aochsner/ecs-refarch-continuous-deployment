@@ -84,33 +84,33 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 0, !GetAZs ]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       CidrBlock: !Ref PrivSubnet1CIDR
       Tags:
         - Key: Name
-          Value: !Sub ${Name} (Public)
+          Value: !Sub ${Name} (Private)
 
   PrivSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 1, !GetAZs ]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       CidrBlock: !Ref PrivSubnet2CIDR
       Tags:
         - Key: Name
-          Value: !Sub ${Name} (Public)
+          Value: !Sub ${Name} (Private)
 
   PrivSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 2, !GetAZs ]
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       CidrBlock: !Ref PrivSubnet3CIDR
       Tags:
         - Key: Name
-          Value: !Sub ${Name} (Public)
+          Value: !Sub ${Name} (Private)
 
   PubRouteTable:
     Type: AWS::EC2::RouteTable
@@ -197,6 +197,6 @@ Outputs:
   PublicSubnets:
     Value: !Join [ ",", [ !Ref PubSubnet1, !Ref PubSubnet2, !Ref PubSubnet3 ] ]
   PrivateSubnets:
-    Value: !Join [ ",", [ !Ref PubSubnet1, !Ref PubSubnet2, !Ref PubSubnet3 ] ]
+    Value: !Join [ ",", [ !Ref PrivSubnet1, !Ref PrivSubnet2, !Ref PrivSubnet3 ] ]
   VpcId:
     Value: !Ref VPC
