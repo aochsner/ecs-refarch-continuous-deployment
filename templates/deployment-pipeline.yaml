@@ -23,6 +23,14 @@ Parameters:
   BuildComputeType:
     Type: String
 
+  ContainerPort:
+    Type: Number
+    Default: 80
+
+  HostPort:
+    Type: Number
+    Default: 80
+
 
 Resources:
   Repository:
@@ -230,7 +238,9 @@ Resources:
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}",
-                    "Repository": "${Repository}"
+                    "Repository": "${Repository}",
+                    "ContainerPort": "${ContainerPort}",
+                    "HostPort": "${HostPort}"
                   }
               InputArtifacts:
                 - Name: Template

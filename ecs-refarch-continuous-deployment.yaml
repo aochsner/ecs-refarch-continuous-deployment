@@ -10,15 +10,15 @@ Parameters:
     Default: mathomas
     Description: Your username on GitHub.
 
-  GitHubRepo:
-    Type: String
-    Default: twig
-    Description: The repo name of the sample service.
+  GitHubRepos:
+    Type: CommaDelimitedList
+    Default: twig, twig-api
+    Description: The repos for the apps/services to build and deploy.
 
-  GitHubBranch:
-    Type: String
-    Default: aws_metal_rig
-    Description: The branch of the repo to continuously deploy.
+  GitHubBranches:
+    Type: CommaDelimitedList
+    Default: aws_metal_rig, aws_metal_rig
+    Description: The branch(es) within the above repos to continuously deploy (order is important!).
 
   GitHubToken:
     Type: String
@@ -66,9 +66,9 @@ Metadata:
     ParameterLabels:
       GitHubUser:
         default: "User"
-      GitHubRepo:
+      GitHubRepos:
         default: "Repo"
-      GitHubBranch:
+      GitHubBranches:
         default: "Branch"
       GitHubToken:
         default: "Personal Access Token"
@@ -84,12 +84,15 @@ Metadata:
         default: "Initial/desired size of Cluster"
     ParameterGroups:
       - Label:
-          default: GitHub Configuration
+          default: Global GitHub Configuration
         Parameters:
-          - GitHubRepo
-          - GitHubBranch
           - GitHubUser
           - GitHubToken
+      - Label:
+          default: GitHub Project Configuration
+        Parameters:
+          - GitHubRepos
+          - GitHubBranches
       - Label:
           default: Build/Deployment Pipeline Configuration
         Parameters:
@@ -117,7 +120,7 @@ Resources:
         MaxClusterSize: !Ref EcsClusterMaxSize
         DesiredClusterSize: !Ref EcsClusterDesiredSize
 
-  Pipeline:
+  Pipeline0:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/deployment-pipeline.yaml
@@ -125,13 +128,39 @@ Resources:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         GitHubUser: !Ref GitHubUser
         GitHubToken: !Ref GitHubToken
-        GitHubRepo: !Ref GitHubRepo
-        GitHubBranch: !Ref GitHubBranch
-        TargetGroup: !GetAtt Elb.Outputs.TargetGroup
+        GitHubRepo: !Select [0, !Ref GitHubRepos]
+        GitHubBranch: !Select [0, !Ref GitHubBranches]
+        TargetGroup: !GetAtt Elb0.Outputs.TargetGroup
         TemplateBucket: !Sub ${TemplateBucket}
         BuildComputeType: !Ref BuildComputeType
+        ContainerPort: 80
+        HostPort: 80
 
-  Elb:
+  Pipeline1:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/deployment-pipeline.yaml
+      Parameters:
+        Cluster: !GetAtt Cluster.Outputs.ClusterName
+        GitHubUser: !Ref GitHubUser
+        GitHubToken: !Ref GitHubToken
+        GitHubRepo: !Select [1, !Ref GitHubRepos]
+        GitHubBranch: !Select [1, !Ref GitHubBranches]
+        TargetGroup: !GetAtt Elb0.Outputs.TargetGroup
+        TemplateBucket: !Sub ${TemplateBucket}
+        BuildComputeType: !Ref BuildComputeType
+        ContainerPort: 8000
+        HostPort: 8000
+
+  Elb0:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/load-balancer.yaml
+      Parameters:
+        Subnets: !GetAtt Vpc.Outputs.PublicSubnets
+        VpcId: !GetAtt Vpc.Outputs.VpcId
+
+  Elb1:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${TemplateBucket}/templates/load-balancer.yaml
@@ -156,9 +185,16 @@ Resources:
 
 Outputs:
   ServiceUrl:
-    Description: The sample service that is being continuously deployed.
-    Value: !GetAtt Elb.Outputs.ServiceUrl
+    Description: The URL of twig.
+    Value: !GetAtt Elb0.Outputs.ServiceUrl
 
-  PipelineUrl:
+    Description: The URL of twig-api.
+    Value: !GetAtt Elb1.Outputs.ServiceUrl
+
+  Pipeline0Url:
     Description: The continuous deployment pipeline in the AWS Management Console.
-    Value: !GetAtt Pipeline.Outputs.PipelineUrl
+    Value: !GetAtt Pipeline0.Outputs.PipelineUrl
+
+  Pipeline1Url:
+    Description: The continuous deployment pipeline in the AWS Management Console.
+    Value: !GetAtt Pipeline1.Outputs.PipelineUrl

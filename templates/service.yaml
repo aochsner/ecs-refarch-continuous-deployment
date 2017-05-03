@@ -16,6 +16,14 @@ Parameters:
   Repository:
     Type: String
 
+  ContainerPort:
+    Type: Number
+    Default: 80
+
+  HostPort:
+    Type: Number
+    Default: 80
+
 
 Resources:
   ECSServiceRole:
@@ -43,7 +51,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
         - ContainerName: simple-app
-          ContainerPort: 80
+          ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
@@ -60,8 +68,8 @@ Resources:
           Essential: true
           Memory: 128
           PortMappings:
-            - ContainerPort: 80
-              HostPort: 80
+            - ContainerPort: !Ref ContainerPort
+              HostPort: !Ref HostPort
               Protocol: HTTP
           Environment:
             - Name: Tag
